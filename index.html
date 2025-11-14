@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>飲食店経営シミュレーション - チートエディション</title>
     <style>
-        /* --- CSS: スタイル定義 (前回とほぼ同じ) --- */
+        /* --- CSS: スタイル定義 --- */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f4f4f9;
@@ -25,18 +25,17 @@
             width: 90%;
             max-width: 900px;
             padding: 30px;
-            border: 5px solid #ff5722; /* チート感出す */
+            border: 5px solid #ff5722; 
         }
 
         h1, h2 {
-            color: #ff5722; /* チート色 */
+            color: #ff5722; 
             text-align: center;
             border-bottom: 2px solid #ff5722;
             padding-bottom: 10px;
             margin-top: 0;
         }
         
-        /* ... (その他のCSSは省略、前回のコードと同じ) ... */
         .screen {
             display: none; 
         }
@@ -53,7 +52,7 @@
         }
 
         .button-list button, .action-btn {
-            background-color: #9c27b0; /* チートボタン色 */
+            background-color: #9c27b0; 
             color: white;
             border: none;
             padding: 10px 20px;
@@ -89,7 +88,7 @@
         #main-game-area {
             grid-area: main;
             min-height: 400px;
-            background-color: #ffe0b2; /* チート背景 */
+            background-color: #ffe0b2; 
             border-radius: 8px;
             padding: 20px;
         }
@@ -105,7 +104,7 @@
         #status-display {
             font-size: 1.2em;
             font-weight: bold;
-            color: #ff5722; /* チート色 */
+            color: #ff5722; 
         }
         
         #log-terop {
@@ -123,11 +122,22 @@
             z-index: 1000;
         }
         
+        #seat-map div {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 0.9em;
+            min-width: 100px;
+            text-align: center;
+        }
+
         .seat-empty { background-color: #fff3e0; border: 1px solid #ff5722; }
         .seat-occupied-wait { background-color: #ffe0b2; border: 1px solid #ff9800; color: #333; }
         .seat-occupied-eat { background-color: #ffcdd2; border: 1px solid #f44336; color: #333; }
         
-        /* --- モーダルCSS (前回と同じ) --- */
+        /* --- モーダルCSS --- */
         .modal {
             display: none; 
             position: fixed;
@@ -364,7 +374,7 @@
     };
     
     // =========================================================
-    // 0. クラス定義 (従業員クラスにマスターを定義済み)
+    // 0. クラス定義
     // =========================================================
 
     class MenuItem {
@@ -383,19 +393,19 @@
             switch (grade) {
                 // 【チート設定】マスター従業員
                 case 'マスター':
-                    this.speedMultiplier = 3.0; // 3倍速
+                    this.speedMultiplier = 3.0; 
                     this.missRate = 0.0;
-                    this.dailyCost = 800000; // 日給80万
+                    this.dailyCost = 800000; 
                     break;
                 case 'ベテラン':
                     this.speedMultiplier = 1.5;
                     this.missRate = 0.0;
-                    this.dailyCost = 500000; // 日給50万
+                    this.dailyCost = 500000; 
                     break;
                 case '標準':
                     this.speedMultiplier = 1.0;
                     this.missRate = 0.03;
-                    this.dailyCost = 250000; // 日給25万
+                    this.dailyCost = 250000; 
                     break;
                 case 'ポンコツ':
                     this.speedMultiplier = 0.5;
@@ -440,7 +450,6 @@
                 }
             }
             
-            // 満足度（Patience）の減り方を調整し、ゴミ箱効果を適用
             const baseRate = this.status === 'Eating' ? 0.3 : 1.0; 
             const garbageCanEffect = game.hasGarbageCan ? 0.8 : 1.0; 
 
@@ -458,8 +467,7 @@
     // =========================================================
     class GameManager {
         constructor() {
-            // 【チート設定】資産は表示用
-            this.asset = 999999999999;
+            this.asset = 999999999999; // 表示用：無限資産
             this.reputation = 3;
             this.day = 1;
             this.time = 0;
@@ -483,17 +491,13 @@
             
             this.hasGarbageCan = false;
         }
-        
-        // ... (resetGame は省略) ...
 
         initializeGame(settings) {
             this.isGameRunning = true;
             this.storeType = settings.type;
             this.location = settings.location;
-            // 【チート設定】席数は20席固定
-            this.currentSeats = 20;
+            this.currentSeats = 20; // 席数は20席固定
 
-            // 初期メニューは設定から読み込み
             this.menu = settings.initialMenu.map(itemData => new MenuItem(itemData.name, itemData.basePrice, itemData.cost));
             
             this.seatsData = [];
@@ -501,7 +505,6 @@
                 this.seatsData.push({ id: i + 1, isOccupied: false, numGuests: 0, customerId: null });
             }
 
-            // 【チート設定】初期従業員 (マスターをデフォルトで数人入れておく)
             if (this.employees.length === 0) {
                  this.employees = [new Employee('マスター'), new Employee('マスター'), new Employee('ベテラン'), new Employee('標準')];
             }
@@ -546,8 +549,48 @@
             this.updateDisplay();
         }
 
-        // ... (spawnCustomer は変更なし) ...
-        
+        spawnCustomer(deltaTime) {
+            this.customerSpawnTimer += deltaTime;
+
+            if (this.customerSpawnTimer >= this.customerSpawnInterval) {
+                this.customerSpawnTimer = 0;
+
+                const availableSeats = this.seatsData.filter(seat => !seat.isOccupied);
+                if (availableSeats.length === 0) {
+                    terop('満席のため、お客様が帰ってしまいました...');
+                    return;
+                }
+
+                const numPeople = Math.floor(Math.random() * 4) + 1;
+                const orderType = Math.random() < 0.7 ? 'タブレット' : '手動';
+
+                const seatIndex = this.seatsData.findIndex(seat => !seat.isOccupied);
+                if (seatIndex !== -1) {
+                    const assignedSeat = this.seatsData[seatIndex];
+                    
+                    const customer = new Customer(numPeople, orderType, assignedSeat.id, this.menu);
+                    
+                    if (!customer.orderedItem) {
+                        terop('提供メニューが設定されていません。客が帰りました。');
+                        return;
+                    }
+
+                    assignedSeat.isOccupied = true;
+                    assignedSeat.numGuests = customer.numPeople;
+                    assignedSeat.customerId = customer.id;
+                    
+                    this.customers.push(customer);
+                    terop(`${numPeople}人組（${orderType}注文）が来店し、席 ${customer.seatId} に着席。注文: ${customer.orderedItem.name}`);
+
+                    this.customerSpawnInterval = Math.random() * 10 + 5;
+                    
+                    if (orderType === 'タブレット') {
+                        this.cookQueue.push({ customer: customer });
+                    }
+                }
+            }
+        }
+
         removeCustomer(customer, seatId, paid) {
             const seat = this.seatsData.find(s => s.id === seatId);
             if (seat) {
@@ -560,24 +603,65 @@
             
             if (paid) {
                 const profit = customer.billAmount - customer.totalCost;
-                // 【チート修正】資産の増減ロジックを完全に削除
+                // 資産の増減ロジックを完全に削除
                 terop(`席 ${seatId} の会計完了！ 注文: ${customer.orderedItem.name} x ${customer.numPeople}、利益: +${profit.toLocaleString()}円 (資産不変)`);
             } else {
-                // 【チート修正】資産の増減ロジックを完全に削除
+                // 資産の増減ロジックを完全に削除
                 this.reputation = Math.max(1, this.reputation - 0.1); 
                 terop(`席 ${seatId} のお客様が怒って帰りました...評判低下 (資産不変)`);
             }
         }
         
-        // ... (processEmployeeTasks, completeTask は変更なし) ...
+        processEmployeeTasks(deltaTime) {
+            this.employees.forEach(employee => {
+                let task = this.employeeTasks.find(t => t.employee === employee);
+                
+                if (task) {
+                    task.timeLeft -= deltaTime;
+
+                    if (task.timeLeft <= 0) {
+                        this.completeTask(task);
+                        this.employeeTasks = this.employeeTasks.filter(t => t !== task);
+                        task = null;
+                    }
+                }
+
+                if (!task) {
+                    const manualCustomer = this.customers.find(c => c.status === 'WaitOrder' && c.orderType === '手動');
+                    if (manualCustomer) {
+                        const baseTime = 5; 
+                        this.employeeTasks.push({ employee: employee, taskType: 'order_taking', target: manualCustomer, timeLeft: employee.getProcessTime(baseTime) });
+                        manualCustomer.status = 'WaitCook'; 
+                        return;
+                    }
+
+                    if (this.cookQueue.length > 0) {
+                        const cookItem = this.cookQueue.shift();
+                        const baseTime = 15; 
+                        this.employeeTasks.push({ employee: employee, taskType: 'cooking', target: cookItem.customer, timeLeft: employee.getProcessTime(baseTime) });
+                        return;
+                    }
+                }
+            });
+        }
+        
+        completeTask(task) {
+            const customer = task.target;
+            
+            if (task.taskType === 'order_taking') {
+                this.cookQueue.push({ customer: customer });
+                terop(`注文受付完了！席${customer.seatId}の注文を調理キューに入れました。`);
+                
+            } else if (task.taskType === 'cooking') {
+                customer.status = 'Eating';
+                terop(`調理完了！席${customer.seatId}の食事提供を開始しました。`);
+            }
+        }
 
         updateDisplay() {
-            // 【チート設定】資産表示を無限に
             document.getElementById('asset-display').textContent = `資産: ♾️ 無限`;
             document.getElementById('reputation-display').textContent = `評判: ★${this.reputation.toFixed(1)}`;
             
-            // ... (時間、席の表示は変更なし) ...
-
             const minutes = Math.floor(this.time / 60);
             const seconds = Math.floor(this.time % 60);
             const timeStr = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
@@ -607,7 +691,7 @@
             
             document.getElementById('garbage-can-status').textContent = this.hasGarbageCan ? '✅ 購入済み' : '❌ 未購入';
             
-            document.getElementById('employee-count').textContent = this.employees.length;
+            document.getElementById('employee-count').textContent = game.employees.length;
             document.getElementById('wait-order-count').textContent = this.customers.filter(c => c.status === 'WaitOrder' && c.orderType === '手動').length;
             document.getElementById('wait-cook-count').textContent = this.cookQueue.length;
             
@@ -647,7 +731,6 @@
 
             const totalCost = this.employees.reduce((sum, emp) => sum + emp.dailyCost, 0);
             
-            // 【チート修正】経費も資産を減らさない
             terop(`Day ${this.day} の経費 ${totalCost.toLocaleString()}円 は無限資金から支払われました。`);
 
             setTimeout(() => {
@@ -666,13 +749,11 @@
                 if (this.isGameRunning) gameLoop(0); 
             }, 3000);
         }
-
-        // getGameDataはチート版では不要のため削除
     }
 
 
     // =========================================================
-    // 2. 画面と初期設定ロジック (チート専用に簡略化)
+    // 2. 画面と初期設定ロジック
     // =========================================================
     
     function showScreen(screenId) {
@@ -686,8 +767,8 @@
         type: null, 
         location: 'どこでもドア', 
         maxSeats: 20, 
-        currentSeats: 20, // 席数20に固定
-        initialCost: 0, // 費用は無視
+        currentSeats: 20, 
+        initialCost: 0, 
         initialMenu: [] 
     };
 
@@ -710,12 +791,11 @@
     }
     
     function setupMenuSelection() {
-        // 【チート設定】全メニューをリストアップ
         const menuArea = document.getElementById('menu-selection-area');
         menuArea.innerHTML = '';
         currentSettings.initialMenu = [];
 
-        // RestaurantとFastFoodの全メニューを結合
+        // 全メニューを結合
         const menuItems = [...MENU_DATA.FastFood, ...MENU_DATA.Restaurant];
 
         menuItems.forEach(item => {
@@ -795,12 +875,14 @@
         terop(`チートモード開始！${currentSettings.type}をオープンしました！`);
         
         if (gameLoopRef) cancelAnimationFrame(gameLoopRef);
-        gameLoop(0);
+        
+        // 【修正点】lastTimeをリセットしてからゲームループを開始
+        gameLoop.lastTime = 0; 
+        gameLoopRef = requestAnimationFrame(gameLoop);
         
         terop('チートモード有効: 席数20、資金無限、全メニュー、マスター従業員。');
     }
     
-    // ゲームをやめるボタンの処理
     function quitGame() {
         if (confirm('ゲームを終了してホーム画面に戻りますか？')) {
             game.isGameRunning = false;
@@ -871,7 +953,7 @@
         }
     }
 
-    // --- アイテム管理 (資産無限のためコストロジックを無視) ---
+    // --- アイテム管理 ---
     function updateItemPurchaseUI() {
         const listElement = document.getElementById('item-list-purchase');
         listElement.innerHTML = '';
@@ -905,8 +987,6 @@
     }
 
     function purchaseItem(key, cost) {
-        // 【チート修正】資産チェックは常にOK、資産は減らさない
-        
         if (key === 'GARBAGE_CAN' && game.hasGarbageCan) {
              terop('すでに高級ゴミ箱は購入済みです。');
              return;
@@ -924,7 +1004,7 @@
         updateItemPurchaseUI();
     }
 
-    // --- メニュー管理 (前回と同じ) ---
+    // --- メニュー管理 ---
     function updateMenuSettings() {
         const listElement = document.getElementById('current-menu-list');
         listElement.innerHTML = '';
@@ -973,7 +1053,6 @@
         optionsArea.style.display = 'block';
         optionsArea.innerHTML = '';
 
-        // 【チート設定】全メニューをリストアップ
         const allItems = [...MENU_DATA.FastFood, ...MENU_DATA.Restaurant];
         
         if (!allItems) return;
